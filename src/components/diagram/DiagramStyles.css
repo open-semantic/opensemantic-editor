@@ -1,0 +1,13 @@
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: #888 !important;
+  stroke-width: 3px !important;
+}
+
+.react-flow__edge-path {
+  cursor: pointer;
+}
+
+.react-flow__edge:hover .react-flow__edge-path {
+  stroke: #888 !important;
+  stroke-width: 2.5px !important;
+}

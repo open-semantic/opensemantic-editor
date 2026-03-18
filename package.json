@@ -1,0 +1,73 @@
+{
+  "name": "opensemantic-editor",
+  "version": "0.1.0",
+  "description": "A visual editor for Open Semantic Interchange (OSI) semantic models",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/open-semantic-interchange/opensemantic-editor"
+  },
+  "type": "module",
+  "bin": {
+    "opensemantic-editor": "./bin/opensemantic-editor.js"
+  },
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build --mode production",
+    "build:debug": "vite build --mode debug",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "prepublishOnly": "npm run build",
+    "start": "npm run build && node bin/opensemantic-editor.js",
+    "start:debug": "npm run build:debug && node bin/opensemantic-editor.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/modifiers": "^9.0.0",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "@headlessui/react": "^2.2.9",
+    "@monaco-editor/react": "^4.7.0",
+    "@tailwindcss/typography": "^0.5.19",
+    "@xyflow/react": "^12.9.0",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "dagre": "^0.8.5",
+    "monaco-editor": "0.54.0",
+    "monaco-yaml": "^5.4.0",
+    "open": "^10.1.0",
+    "path-browserify": "^1.0.1",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
+    "react-markdown": "^10.1.0",
+    "react-router-dom": "^7.9.5",
+    "yaml": "^2.8.1",
+    "zustand": "^5.0.8"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@tailwindcss/vite": "^4.1.17",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@vitejs/plugin-react": "^5.1.0",
+    "baseline-browser-mapping": "^2.9.16",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "jsdom": "^29.0.0",
+    "tailwindcss": "^4.1.17",
+    "vite": "^7.2.2",
+    "vitest": "^4.1.0"
+  }
+}
