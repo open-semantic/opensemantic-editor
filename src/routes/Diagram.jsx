@@ -42,15 +42,15 @@ const DiagramViewInner = () => {
         relationships: state.getValue('semantic_model[0].relationships') || [],
     })));
 
-    const { initialNodes, initialEdges } = useMemo(() => {
-        const nodes = datasets.map((dataset, index) => ({
+    const { nodes: layoutedNodes, edges: layoutedEdges } = useMemo(() => {
+        const nodeList = datasets.map((dataset, index) => ({
             id: dataset.name || `dataset-${index}`,
             type: 'dataset',
             position: { x: 0, y: 0 },
             data: { name: dataset.name, source: dataset.source, fields: dataset.fields || [], index },
         }));
 
-        const edges = relationships.map((rel, index) => ({
+        const edgeList = relationships.map((rel, index) => ({
             id: `rel-${index}`,
             source: rel.from,
             target: rel.to,
@@ -59,16 +59,16 @@ const DiagramViewInner = () => {
             labelStyle: { fontSize: 10, fill: '#666' },
         }));
 
-        return getLayoutedElements(nodes, edges);
+        return getLayoutedElements(nodeList, edgeList);
     }, [datasets, relationships]);
 
-    const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-    const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+    const [nodes, setNodes, onNodesChange] = useNodesState(layoutedNodes);
+    const [edges, setEdges, onEdgesChange] = useEdgesState(layoutedEdges);
 
     useEffect(() => {
-        setNodes(initialNodes);
-        setEdges(initialEdges);
-    }, [initialNodes, initialEdges, setNodes, setEdges]);
+        setNodes(layoutedNodes);
+        setEdges(layoutedEdges);
+    }, [layoutedNodes, layoutedEdges, setNodes, setEdges]);
 
     return (
         <div className="h-full w-full">
