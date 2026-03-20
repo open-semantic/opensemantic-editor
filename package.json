@@ -4,7 +4,7 @@
   "description": "A visual editor for Open Semantic Interchange (OSI) semantic models",
   "repository": {
     "type": "git",
-    "url": "https://github.com/open-semantic-interchange/opensemantic-editor"
+    "url": "https://github.com/open-semantic/opensemantic-editor"
   },
   "type": "module",
   "bin": {
@@ -40,7 +40,7 @@
     "@xyflow/react": "^12.9.0",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
-    "dagre": "^0.8.5",
+    "elkjs": "^0.11.1",
     "monaco-editor": "0.54.0",
     "monaco-yaml": "^5.4.0",
     "open": "^10.1.0",

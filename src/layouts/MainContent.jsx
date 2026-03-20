@@ -3,7 +3,7 @@ import { useRef, useState } from 'react';
 import YamlEditor from "../components/features/code/YamlEditor.jsx";
 import SemanticModelPreview from "../components/features/preview/SemanticModelPreview.jsx";
 import WarningsPanel from "../components/features/WarningsPanel.jsx";
-import { Overview, Datasets, Dataset, Relationships, Metrics, CustomExtensions, Diagram } from "../routes/index.js";
+import { Overview, Datasets, Dataset, Relationships, Relationship, Metrics, Metric, CustomExtensions, Diagram } from "../routes/index.js";
 import { useEditorStore } from "../store.js";
 import YamlParseErrorPage from "../components/features/code/YamlParseErrorPage.jsx";
 import { ErrorBoundary } from "../components/error/index.js";
@@ -37,7 +37,7 @@ const MainContent = () => {
         <div className="flex flex-col w-full h-full min-w-0">
             <div className="flex flex-row w-full h-full min-w-0">
                 <div
-                    className={`h-full overflow-auto ${isRightPaneVisible ? 'max-lg:!w-full' : 'w-full'}`}
+                    className={`h-full ${currentView === 'diagram' ? 'overflow-hidden' : 'overflow-auto'} ${isRightPaneVisible ? 'max-lg:!w-full' : 'w-full'}`}
                     style={isRightPaneVisible ? { width: `${leftPanePercent}%` } : {}}
                 >
                     {/* Always keep YAML editor mounted for validation */}
@@ -71,7 +71,9 @@ const MainContent = () => {
                                 <Route path="/datasets" element={<Datasets />} />
                                 <Route path="/datasets/:datasetId" element={<Dataset />} />
                                 <Route path="/relationships" element={<Relationships />} />
+                                <Route path="/relationships/:relationshipId" element={<Relationship />} />
                                 <Route path="/metrics" element={<Metrics />} />
+                                <Route path="/metrics/:metricId" element={<Metric />} />
                                 <Route path="/custom-extensions" element={<CustomExtensions />} />
                                 <Route path="*" element={<Overview />} />
                             </Routes>

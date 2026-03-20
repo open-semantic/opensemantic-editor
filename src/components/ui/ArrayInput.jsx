@@ -1,10 +1,11 @@
 import { useState } from 'react';
 
-const ArrayInput = ({ label, value = [], onChange, placeholder = "Add item..." }) => {
+const ArrayInput = ({ label, value = [], onChange, placeholder = "Add item...", options }) => {
   const [newItem, setNewItem] = useState('');
 
   const handleAdd = () => {
     if (!newItem.trim()) return;
+    if ((value || []).includes(newItem.trim())) return;
     onChange([...(value || []), newItem.trim()]);
     setNewItem('');
   };
@@ -20,6 +21,40 @@ const ArrayInput = ({ label, value = [], onChange, placeholder = "Add item..." }
       handleAdd();
     }
   };
+
+  const handleCheckboxToggle = (opt) => {
+    const current = value || [];
+    if (current.includes(opt)) {
+      const updated = current.filter(v => v !== opt);
+      onChange(updated.length > 0 ? updated : undefined);
+    } else {
+      onChange([...current, opt]);
+    }
+  };
+
+  if (options) {
+    return (
+      <div>
+        {label && <label className="block text-xs font-medium leading-4 text-gray-900 mb-1">{label}</label>}
+        <div className="ring-1 ring-gray-300 rounded-md p-2 space-y-1">
+          {options.map(opt => (
+            <label key={opt} className="flex items-center gap-2 cursor-pointer text-xs text-gray-900">
+              <input
+                type="checkbox"
+                checked={(value || []).includes(opt)}
+                onChange={() => handleCheckboxToggle(opt)}
+                className="rounded accent-indigo-600"
+              />
+              {opt}
+            </label>
+          ))}
+          {options.length === 0 && (
+            <span className="text-xs text-gray-400">No columns available</span>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>

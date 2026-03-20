@@ -1,5 +1,3 @@
-# yaml-language-server: $schema=../core-spec/osi-schema.json
-
 # TPC-DS Semantic Model Example
 # This example demonstrates the OSI Core Metadata Spec using the TPC-DS benchmark schema
 # TPC-DS is a decision support benchmark with a realistic retail business model

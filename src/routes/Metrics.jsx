@@ -1,23 +1,20 @@
+import { useNavigate } from 'react-router-dom';
 import { useEditorStore } from '../store.js';
 import { useShallow } from "zustand/react/shallow";
-import ValidatedInput from '../components/ui/ValidatedInput.jsx';
-import ValidatedTextarea from '../components/ui/ValidatedTextarea.jsx';
-import ExpressionEditor from '../components/ui/ExpressionEditor.jsx';
-import AIContextEditor from '../components/ui/AIContextEditor.jsx';
 
 const Metrics = () => {
+    const navigate = useNavigate();
     const metrics = useEditorStore(useShallow((state) => state.getValue('semantic_model[0].metrics'))) || [];
     const setValue = useEditorStore((state) => state.setValue);
-    const basePath = 'semantic_model[0].metrics';
 
     const handleAdd = () => {
         const updated = [...metrics, { name: `metric_${metrics.length + 1}`, expression: { dialects: [] }, description: '' }];
-        setValue(basePath, updated);
+        setValue('semantic_model[0].metrics', updated);
     };
 
     const handleRemove = (index) => {
         const updated = metrics.filter((_, i) => i !== index);
-        setValue(basePath, updated.length > 0 ? updated : undefined);
+        setValue('semantic_model[0].metrics', updated.length > 0 ? updated : undefined);
     };
 
     return (
@@ -40,42 +37,39 @@ const Metrics = () => {
                         <p className="mt-1 text-sm text-gray-500">Add metrics to define computed values.</p>
                     </div>
                 ) : (
-                    <div className="space-y-4">
-                        {metrics.map((metric, index) => {
-                            const metricPath = `${basePath}[${index}]`;
-                            return (
-                                <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm font-semibold text-gray-900">{metric.name || `Metric ${index + 1}`}</span>
-                                        <button onClick={() => handleRemove(index)} className="text-red-500 hover:text-red-700 text-xs">Remove</button>
+                    <div className="space-y-2">
+                        {metrics.map((metric, index) => (
+                            <div key={index}
+                                className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50/50 transition-colors cursor-pointer"
+                                onClick={() => navigate(`/metrics/${index}`)}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                    </svg>
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-900">{metric.name || `Metric ${index + 1}`}</p>
+                                        <p className="text-xs text-gray-500">
+                                            {metric.description || (metric.expression?.dialects?.[0]?.expression ? metric.expression.dialects[0].expression : 'No expression')}
+                                        </p>
                                     </div>
-                                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                        <ValidatedInput
-                                            name={`metric-name-${index}`} label="Name" value={metric.name || ''}
-                                            onChange={(e) => setValue(`${metricPath}.name`, e.target.value)}
-                                            required={true} placeholder="metric_name"
-                                        />
-                                        <div className="sm:col-span-2">
-                                            <ValidatedTextarea
-                                                name={`metric-desc-${index}`} label="Description" value={metric.description || ''}
-                                                onChange={(e) => setValue(`${metricPath}.description`, e.target.value || undefined)}
-                                                placeholder="Describe the metric..." rows={2}
-                                            />
-                                        </div>
-                                        <div className="sm:col-span-2">
-                                            <ExpressionEditor
-                                                label="Expression" value={metric.expression}
-                                                onChange={(val) => setValue(`${metricPath}.expression`, val)}
-                                            />
-                                        </div>
-                                    </div>
-                                    <AIContextEditor
-                                        label="AI Context" value={metric.ai_context || {}}
-                                        onChange={(val) => setValue(`${metricPath}.ai_context`, val)}
-                                    />
                                 </div>
-                            );
-                        })}
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); handleRemove(index); }}
+                                        className="p-1.5 text-gray-400 cursor-pointer border border-gray-300 rounded hover:text-red-400 hover:border-red-400 transition-colors flex-shrink-0"
+                                        title="Remove metric"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                    <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 )}
             </div>

@@ -71,8 +71,8 @@ test.describe('Open Semantic Editor - TPC-DS Example', () => {
         await page.getByRole('link', { name: 'Datasets' }).first().click();
         await expect(page.getByText('store_sales').first()).toBeVisible();
 
-        // Click on the store_sales dataset row
-        await page.locator('.space-y-2 > div').filter({ hasText: 'store_sales' }).first().click();
+        // Click on the store_sales link in the sidebar navigation
+        await page.getByRole('link', { name: 'store_sales', exact: true }).click();
 
         // Should navigate to dataset detail page
         await expect(page.getByText('Dataset: store_sales')).toBeVisible();
@@ -99,7 +99,7 @@ test.describe('Open Semantic Editor - TPC-DS Example', () => {
         await expect(page.getByText('store_sales_to_store').first()).toBeVisible();
 
         // Verify count
-        const relationshipCards = page.locator('.space-y-4 > .border.border-gray-200.rounded-lg');
+        const relationshipCards = page.locator('.space-y-2 > .border.border-gray-200.rounded-lg');
         await expect(relationshipCards).toHaveCount(4);
     });
 
@@ -117,7 +117,7 @@ test.describe('Open Semantic Editor - TPC-DS Example', () => {
         await expect(page.getByText('store_productivity').first()).toBeVisible();
 
         // Verify count
-        const metricCards = page.locator('.space-y-4 > .border.border-gray-200.rounded-lg');
+        const metricCards = page.locator('.space-y-2 > .border.border-gray-200.rounded-lg');
         await expect(metricCards).toHaveCount(5);
     });
 

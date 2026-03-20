@@ -1,11 +1,16 @@
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEditorStore } from '../store.js';
 import { useShallow } from "zustand/react/shallow";
+import { DndContext, closestCenter, PointerSensor, KeyboardSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers';
 import ValidatedInput from '../components/ui/ValidatedInput.jsx';
 import ValidatedTextarea from '../components/ui/ValidatedTextarea.jsx';
 import AIContextEditor from '../components/ui/AIContextEditor.jsx';
 import ArrayInput from '../components/ui/ArrayInput.jsx';
-import ExpressionEditor from '../components/ui/ExpressionEditor.jsx';
+import FieldRow from '../components/ui/FieldRow.jsx';
+import FieldDetailsDrawer from '../components/ui/FieldDetailsDrawer.jsx';
 
 const Dataset = () => {
     const { datasetId } = useParams();
@@ -15,6 +20,57 @@ const Dataset = () => {
 
     const dataset = useEditorStore(useShallow((state) => state.getValue(basePath)));
     const setValue = useEditorStore((state) => state.setValue);
+
+    const [selectedFieldIndex, setSelectedFieldIndex] = useState(null);
+    const [autoEditIndex, setAutoEditIndex] = useState(null);
+
+    const fieldsContainerRef = useRef(null);
+    const drawerRef = useRef(null);
+
+    // Drag-and-drop sensors
+    const sensors = useSensors(
+        useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+        useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+    );
+
+    const handleDragEnd = useCallback((event) => {
+        const { active, over } = event;
+        if (!over || active.id === over.id) return;
+        const fromIndex = parseInt(active.id.toString().replace('field-', ''), 10);
+        const toIndex = parseInt(over.id.toString().replace('field-', ''), 10);
+        if (isNaN(fromIndex) || isNaN(toIndex)) return;
+        const currentFields = useEditorStore.getState().getValue(`${basePath}.fields`) || [];
+        const reordered = [...currentFields];
+        const [moved] = reordered.splice(fromIndex, 1);
+        reordered.splice(toIndex, 0, moved);
+        setValue(`${basePath}.fields`, reordered);
+        // Update selected index to follow the moved field
+        if (selectedFieldIndex === fromIndex) {
+            setSelectedFieldIndex(toIndex);
+        } else if (selectedFieldIndex !== null) {
+            if (fromIndex < selectedFieldIndex && toIndex >= selectedFieldIndex) {
+                setSelectedFieldIndex(selectedFieldIndex - 1);
+            } else if (fromIndex > selectedFieldIndex && toIndex <= selectedFieldIndex) {
+                setSelectedFieldIndex(selectedFieldIndex + 1);
+            }
+        }
+    }, [basePath, setValue, selectedFieldIndex]);
+
+    // Close drawer on outside click (same pattern as DC editor)
+    useEffect(() => {
+        if (selectedFieldIndex === null) return;
+
+        const handleClickOutside = (e) => {
+            const inFields = fieldsContainerRef.current?.contains(e.target);
+            const inDrawer = drawerRef.current?.contains(e.target);
+            if (!inFields && !inDrawer) {
+                setSelectedFieldIndex(null);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [selectedFieldIndex]);
 
     if (!dataset) {
         return (
@@ -28,16 +84,30 @@ const Dataset = () => {
     }
 
     const fields = dataset.fields || [];
+    const selectedField = selectedFieldIndex !== null ? fields[selectedFieldIndex] : null;
+    const selectedFieldPath = selectedFieldIndex !== null ? `${basePath}.fields[${selectedFieldIndex}]` : null;
 
     const handleAddField = () => {
-        const newFields = [...fields, { name: `field_${fields.length + 1}`, expression: { dialects: [] } }];
+        const newIndex = fields.length;
+        const newFields = [...fields, { name: '', expression: { dialects: [] } }];
         setValue(`${basePath}.fields`, newFields);
+        setAutoEditIndex(newIndex);
+        setSelectedFieldIndex(null);
     };
 
     const handleRemoveField = (fieldIndex) => {
         const updated = fields.filter((_, i) => i !== fieldIndex);
         setValue(`${basePath}.fields`, updated.length > 0 ? updated : undefined);
+        setSelectedFieldIndex(null);
     };
+
+    const handleSelectField = (fi) => {
+        setSelectedFieldIndex(fi === selectedFieldIndex ? null : fi);
+    };
+
+    const handleCloseDrawer = useCallback(() => {
+        setSelectedFieldIndex(null);
+    }, []);
 
     return (
         <div className="h-full flex flex-col bg-white">
@@ -87,73 +157,86 @@ const Dataset = () => {
                         onChange={(val) => setValue(`${basePath}.ai_context`, val)}
                     />
 
-                    {/* Fields */}
-                    <div>
-                        <div className="flex items-center justify-between mb-3">
-                            <h4 className="text-sm font-semibold text-gray-900">Fields</h4>
-                            <button onClick={handleAddField} className="btn--primary text-xs">+ Add Field</button>
-                        </div>
-
-                        {fields.length === 0 ? (
-                            <p className="text-xs text-gray-500 text-center py-4">No fields defined. Add a field to get started.</p>
-                        ) : (
-                            <div className="space-y-4">
-                                {fields.map((field, fi) => {
-                                    const fieldPath = `${basePath}.fields[${fi}]`;
-                                    return (
-                                        <div key={fi} className="border border-gray-200 rounded-lg p-3 space-y-3">
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-xs font-semibold text-gray-700">Field {fi + 1}</span>
-                                                <button onClick={() => handleRemoveField(fi)} className="text-red-500 hover:text-red-700 text-xs">Remove</button>
-                                            </div>
-                                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                                <ValidatedInput
-                                                    name={`field-name-${fi}`} label="Name" value={field.name || ''}
-                                                    onChange={(e) => setValue(`${fieldPath}.name`, e.target.value)}
-                                                    required={true} placeholder="field_name"
-                                                />
-                                                <ValidatedInput
-                                                    name={`field-label-${fi}`} label="Label" value={field.label || ''}
-                                                    onChange={(e) => setValue(`${fieldPath}.label`, e.target.value || undefined)}
-                                                    placeholder="Display label"
-                                                />
-                                                <div className="sm:col-span-2">
-                                                    <ValidatedTextarea
-                                                        name={`field-desc-${fi}`} label="Description" value={field.description || ''}
-                                                        onChange={(e) => setValue(`${fieldPath}.description`, e.target.value || undefined)}
-                                                        placeholder="Field description..." rows={1}
-                                                    />
-                                                </div>
-                                                <div className="sm:col-span-2">
-                                                    <ExpressionEditor
-                                                        label="Expression" value={field.expression}
-                                                        onChange={(val) => setValue(`${fieldPath}.expression`, val)}
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="flex items-center gap-2 text-xs font-medium text-gray-900">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={field.dimension?.is_time || false}
-                                                            onChange={(e) => setValue(`${fieldPath}.dimension`, e.target.checked ? { is_time: true } : undefined)}
-                                                            className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                                                        />
-                                                        Is Time Dimension
-                                                    </label>
-                                                </div>
-                                            </div>
-                                            <AIContextEditor
-                                                label="Field AI Context" value={field.ai_context || {}}
-                                                onChange={(val) => setValue(`${fieldPath}.ai_context`, val)}
-                                            />
-                                        </div>
-                                    );
-                                })}
+                    {/* Fields Section */}
+                    <div ref={fieldsContainerRef}>
+                        <div className="border border-gray-200 rounded-md">
+                            {/* Header Row */}
+                            <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-b border-gray-200 rounded-t-md">
+                                <span className="text-sm font-medium text-gray-700">Fields</span>
+                                <button
+                                    onClick={handleAddField}
+                                    className="text-gray-400 hover:text-indigo-600 cursor-pointer"
+                                    title="Add field"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                    </svg>
+                                </button>
                             </div>
-                        )}
+
+                            {/* Fields List with Drag-and-Drop */}
+                            {fields.length > 0 ? (
+                                <DndContext
+                                    sensors={sensors}
+                                    collisionDetection={closestCenter}
+                                    onDragEnd={handleDragEnd}
+                                    modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+                                >
+                                    <SortableContext
+                                        items={fields.map((_, idx) => `field-${idx}`)}
+                                        strategy={verticalListSortingStrategy}
+                                    >
+                                        <div className="rounded-b-md">
+                                            {fields.map((field, fi) => (
+                                                <FieldRow
+                                                    key={`field-${fi}`}
+                                                    field={field}
+                                                    fieldIndex={fi}
+                                                    basePath={basePath}
+                                                    isSelected={fi === selectedFieldIndex}
+                                                    onSelect={handleSelectField}
+                                                    primaryKey={dataset.primary_key || []}
+                                                    setValue={setValue}
+                                                    autoEdit={fi === autoEditIndex}
+                                                    onAutoEditComplete={() => setAutoEditIndex(null)}
+                                                    sortableId={`field-${fi}`}
+                                                />
+                                            ))}
+                                        </div>
+                                    </SortableContext>
+                                </DndContext>
+                            ) : (
+                                <div
+                                    className="px-4 py-8 text-center rounded-b-md cursor-pointer hover:bg-gray-50"
+                                    onClick={handleAddField}
+                                >
+                                    <p className="text-sm text-gray-400 mb-2">No fields defined</p>
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); handleAddField(); }}
+                                        className="inline-flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-700"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                        </svg>
+                                        Add field
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
+
+            {/* Field Details Drawer - fixed overlay like DC editor */}
+            <FieldDetailsDrawer
+                ref={drawerRef}
+                field={selectedField}
+                fieldPath={selectedFieldPath}
+                setValue={setValue}
+                open={selectedFieldIndex !== null}
+                onClose={handleCloseDrawer}
+                onDelete={() => handleRemoveField(selectedFieldIndex)}
+            />
         </div>
     );
 };
