@@ -5,7 +5,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
-RUN npm run build
+RUN npx vite build --mode app
 
 # Production stage
 FROM node:22-slim

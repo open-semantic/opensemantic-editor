@@ -36,12 +36,14 @@ export default defineConfig(({ mode }) => ({
     copyPublicDir: true,
     sourcemap: mode === 'debug' ? true : false,
     minify: mode === 'debug' ? false : 'esbuild',
-    lib: {
-      entry: resolve(import.meta.dirname, 'src/embed.jsx'),
-      name: 'OpenSemanticEditor',
-      formats: ['es'],
-      fileName: () => `opensemantic-editor.es.js`
-    },
+    ...(mode !== 'app' ? {
+      lib: {
+        entry: resolve(import.meta.dirname, 'src/embed.jsx'),
+        name: 'OpenSemanticEditor',
+        formats: ['es'],
+        fileName: () => `opensemantic-editor.es.js`
+      },
+    } : {}),
     rollupOptions: {
       output: {
         exports: 'named',
