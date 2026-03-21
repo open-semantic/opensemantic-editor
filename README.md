@@ -20,22 +20,12 @@ Open the editor as web application:
 
 https://editor.opensemantic.com
 
-### Standalone Application
-
-```bash
-npx opensemantic-editor
-```
-
-Or edit a semantic model file directly:
-
-```bash
-npx opensemantic-editor my-model.yaml
-```
-
 ### Docker
 
+You can also run the editor as a Docker container locally or on your own infrastructure:
+
 ```bash
-docker run -d -p 4173:4173 ghcr.io/open-semantic/opensemantic-editor
+docker run -d -p 4173:4173 opensemantic/editor
 ```
 
 Then open http://localhost:4173
@@ -51,20 +41,23 @@ Then open http://localhost:5173
 
 ### Embedding
 
-The editor can be embedded in any web page:
+Install the npm package:
 
-```html
-<div id="opensemantic-editor" style="height: 100vh;"></div>
-<link rel="stylesheet" href="opensemantic-editor.css" />
-<script type="module">
-  import { init } from './opensemantic-editor.es.js';
+```bash
+npm install opensemantic-editor
+```
 
-  const editor = init({
-    container: '#opensemantic-editor',
-    yaml: 'version: "0.1.1"\nsemantic_model:\n  - name: "my_model"\n    datasets: []\n',
-    onSave: (yaml) => console.log('Saved:', yaml),
-  });
-</script>
+Then embed the editor in your application:
+
+```js
+import { init } from 'opensemantic-editor';
+import 'opensemantic-editor/dist/style.css';
+
+const editor = init({
+  container: '#opensemantic-editor',
+  yaml: 'version: "0.1.1"\nsemantic_model:\n  - name: "my_model"\n    datasets: []\n',
+  onSave: (yaml) => console.log('Saved:', yaml),
+});
 ```
 
 

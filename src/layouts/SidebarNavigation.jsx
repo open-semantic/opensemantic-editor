@@ -218,7 +218,7 @@ const SidebarNavigation = ({ isMobile = false }) => {
 
             <div className="mt-auto pt-4 border-t border-gray-200 space-y-2">
                 <a
-                    href="https://github.com/open-semantic-interchange/OSI"
+                    href="https://github.com/open-semantic/opensemantic-editor"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 text-xs text-gray-500 hover:text-indigo-600 transition-colors"
