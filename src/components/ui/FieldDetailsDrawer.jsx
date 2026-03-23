@@ -80,7 +80,18 @@ const FieldDetailsDrawer = forwardRef(({ field, fieldPath, setValue, open, onClo
                         <h2 className="text-sm font-semibold text-gray-900 truncate">
                             {field.name ? `Edit Field: ${field.name}` : 'Edit Field'}
                         </h2>
-                        <div className="ml-2 flex h-6 items-center">
+                        <div className="ml-2 flex h-6 items-center gap-1">
+                            <button
+                                type="button"
+                                onClick={onDelete}
+                                className="relative rounded-md bg-gray-50 text-gray-400 hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                                title="Delete field"
+                            >
+                                <span className="sr-only">Delete field</span>
+                                <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
                             <button
                                 type="button"
                                 onClick={onClose}
@@ -146,18 +157,6 @@ const FieldDetailsDrawer = forwardRef(({ field, fieldPath, setValue, open, onClo
                         onChange={(val) => setValue(`${fieldPath}.ai_context`, val)}
                     />
 
-                    {/* Delete */}
-                    <div className="pt-4 border-t border-gray-200">
-                        <button
-                            onClick={onDelete}
-                            className="px-2 py-1 text-xs text-red-600 bg-white border border-red-600 rounded hover:bg-red-50 transition-colors flex items-center justify-center gap-1.5"
-                        >
-                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                            Delete Field
-                        </button>
-                    </div>
                 </div>
             </div>
         </div>
